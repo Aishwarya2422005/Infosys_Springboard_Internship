@@ -137,7 +137,7 @@ if selected == "Connect on LinkedIn":
 
     with col1:
         st.markdown(
-            f'<a href="https://www.linkedin.com/in/deshmukhgayatri18" target="_blank" class="custom-button">🤝 LinkedIn</a>',
+            f'<a href="https://www.linkedin.com/in/deshmukhgayatri" target="_blank" class="custom-button">🤝 LinkedIn</a>',
             unsafe_allow_html=True
         )
 
