@@ -1,11 +1,48 @@
-# IMPORTS AND SIDE BAR STARTED
 import streamlit as st
 from streamlit_option_menu import option_menu
+import sqlite3
+import bcrypt
 
-st.set_page_config(layout="wide",
-                   page_title="Dashboard | Air Quality Index",
-                   page_icon = "📊",
-                   )
+# Initialize SQLite database connection
+conn = sqlite3.connect("user_data.db")
+cursor = conn.cursor()
+
+# Create a table for storing users
+cursor.execute(
+    """
+CREATE TABLE IF NOT EXISTS users (
+    username TEXT PRIMARY KEY,
+    password TEXT
+)
+"""
+)
+conn.commit()
+
+
+# Function to add a user to the database
+def add_user(username, password):
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    cursor.execute(
+        "INSERT INTO users (username, password) VALUES (?, ?)",
+        (username, hashed_password),
+    )
+    conn.commit()
+
+
+# Function to verify user credentials
+def verify_user(username, password):
+    cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    if result:
+        stored_hash = result[0]
+        return bcrypt.checkpw(password.encode("utf-8"), stored_hash)
+    return False
+
+
+# Set page configuration
+st.set_page_config(
+    layout="wide", page_title="Dashboard | Air Quality Index", page_icon="📊"
+)
 
 hide_st_style = """ 
 <style>
@@ -13,24 +50,78 @@ hide_st_style = """
 footer {visibility:hidden;}
 </style>
 """
-
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-with st.sidebar:
+# Check if the user is logged in (session state)
+if "user_logged_in" not in st.session_state:
+    st.session_state.user_logged_in = False
+
+# Sidebar for navigation
+
+if not st.session_state.user_logged_in:
+    # Show only Login/Signup when the user is not logged in
+
     selected = option_menu(
-        menu_title="Welcome!",
-        options=["Dashboard", "Connect on LinkedIn"],
-        icons=["arrow-right-circle", "envelope"]
+        menu_title="Welcome!", options=["Login/Signup"], icons=["key"]
     )
-# IMPORTS AND SIDE BAR ENDED
+else:
+    # Show Dashboard and Connect on LinkedIn once logged in
+    with st.sidebar:
+        selected = option_menu(
+            menu_title="Welcome!",
+            options=["Dashboard", "Connect on LinkedIn", "Logout"],
+            icons=["arrow-right-circle", "envelope", "key"],
+        )
 
+# Login/Signup Page
+if selected == "Login/Signup":
+    menu = ["Login", "Signup"]
+    choice = st.selectbox("Select an option", menu)
 
-# DASHBOARD STARTS HERE 
+    # Login Form
+    if choice == "Login":
+        st.subheader("Login to Your Account")
+        with st.form(key="login_form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            submit_button = st.form_submit_button(label="Login")
 
-if selected == "Dashboard":
-    st.title('ClearView: Interactive Air Quality Insights')
+            if submit_button:
+                if verify_user(username, password):
+                    st.success("Login successful!")
+                    st.session_state.user_logged_in = True
+                    st.session_state.username = username
+                    st.rerun()  # Refresh to go to the Dashboard
+                else:
+                    st.error("Invalid username or password.")
 
-    st.markdown("""
+    # Signup Form
+    if choice == "Signup":
+        st.subheader("Create a New Account")
+        with st.form(key="signup_form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
+            submit_button = st.form_submit_button(label="Signup")
+
+            if submit_button:
+                if password == confirm_password:
+                    try:
+                        add_user(username, password)
+                        st.success("Signup successful! You can now log in.")
+                    except sqlite3.IntegrityError:
+                        st.error(
+                            "Username already exists. Please choose a different username."
+                        )
+                else:
+                    st.error("Passwords do not match.")
+
+# Dashboard page (only for logged-in users)
+if selected == "Dashboard" and st.session_state.user_logged_in:
+
+    st.title("ClearView: Interactive Air Quality Insights")
+    st.markdown(
+        """
     The **Air Quality Index (AQI) Visualization** project provides an interactive and insightful dashboard designed to help users explore and analyze air quality data across **India**. The dashboard leverages data from 2020 to 2022 to offer a comprehensive view of air quality trends and the impact of key pollutants across various Indian cities. It serves as a valuable tool for **environmental analysts**, **policymakers**, and the **general public**, enabling them to make data-driven decisions related to air quality management and public health.
 
     #### Key Features of the Dashboard:
@@ -41,23 +132,21 @@ if selected == "Dashboard":
     - **Interactive Visualizations**: Easily explore different aspects of air quality data through dynamic charts, graphs, and maps.
     - **Trend Comparisons**: Compare AQI trends across cities, states, or regions for more in-depth analysis.
 
-    This platform empowers users to track air quality fluctuations, identify key sources of pollution, and gain a deeper understanding of regional disparities. Whether for **policy development**, **environmental monitoring**, or **public awareness**, this dashboard is a vital tool for addressing the challenges posed by air pollution in India.
-    """)
-    
-    st.header(" ",divider=True)
-
-    iframe_code = '''
+    This platform empowers users to track air quality fluctuations, identify key sources of pollution, and gain a deeper understanding of regional disparities. Whether for **policy development**, **environmental monitoring**, or **public awareness**, this dashboard is a vital tool for addressing the challenges posed by air pollution in India."""
+    )
+    st.header("", divider=True)
+    # Add the PowerBI iframe
+    iframe_code = """
     <iframe title="AQI" width="1050" height="950"
     src="https://app.powerbi.com/reportEmbed?reportId=203fd22d-2b27-4c5b-9a1a-0ecfd99c8db5&autoAuth=true&ctid=69bd989a-927d-44ee-9edd-609acff82f52" 
     frameborder="0" allowFullScreen="true"></iframe>
-    '''
-
+    """
     st.components.v1.html(iframe_code, height=600)
 
-
+    # Conclusion Section
     st.title("Conclusion")
-
-    st.markdown("""
+    st.markdown(
+        """
     The AQI trends from **2020-2022** emphasize the urgent need to address air pollution, especially in urban regions, and implement actionable plans for a **cleaner, greener, and healthier future** for India.
 
     To tackle this challenge, the following actions should be prioritized:
@@ -68,22 +157,8 @@ if selected == "Dashboard":
     - **Implementing predictive models** to anticipate pollution spikes and take preventive actions ahead of time.
 
     By taking these steps, we can ensure a healthier environment for future generations and significantly improve the air quality in India.
-    """)
-    
-    
-    footer_html = """
-    <div style="background-color:#f0f2f6; padding:20px; text-align:center; border-radius:20px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-        <p style="margin: 0; font-size: 16px;">&copy; Infosys Springboard Internship 5.0.  All rights reserved.<br> 
-        Created with ❤️ by Gayatri Deshmukh
-
-    </div>
     """
-
-    st.markdown(footer_html, unsafe_allow_html=True)
-    
-
-# DASHBOARD ENDS HERE 
-
+    )
 
 # CONNECT PAGE STARTS HERE
 
@@ -150,15 +225,22 @@ if selected == "Connect on LinkedIn":
     st.markdown("---")
     
     
-    footer_html = """
-    <div style="background-color:#f0f2f6; padding:20px; text-align:center; border-radius:20px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-        <p style="margin: 0; font-size: 16px;">&copy; Infosys Springboard Internship 5.0.  All rights reserved.<br> 
-        Created with ❤️ by Gayatri Deshmukh
+footer_html = """
+<div style="background-color:#f0f2f6; padding:20px; text-align:center; border-radius:20px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+    <p style="margin: 0; font-size: 16px;">&copy; Infosys Springboard Internship 5.0.  All rights reserved.<br> 
+    Created with ❤️ by Gayatri Deshmukh
 
-    </div>
-    """
+</div>
+"""
 
-    st.markdown(footer_html, unsafe_allow_html=True)
+st.markdown(footer_html, unsafe_allow_html=True)
 
 # CONNECT PAGE ENDS HERE
 
+# Logout
+
+if selected == "Logout" and st.session_state.user_logged_in:
+    st.session_state.user_logged_in = False
+    st.session_state.username = None
+    st.success("Logout successful! You have been logged out.")
+    st.rerun()
