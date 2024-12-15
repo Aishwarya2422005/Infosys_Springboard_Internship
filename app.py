@@ -136,11 +136,9 @@ if selected == "Dashboard" and st.session_state.user_logged_in:
     )
     st.header("", divider=True)
     # Add the PowerBI iframe
-    iframe_code = """
-    <iframe title="AQI" width="1050" height="950"
-    src="https://app.powerbi.com/reportEmbed?reportId=203fd22d-2b27-4c5b-9a1a-0ecfd99c8db5&autoAuth=true&ctid=69bd989a-927d-44ee-9edd-609acff82f52" 
-    frameborder="0" allowFullScreen="true"></iframe>
-    """
+   
+    iframe_code = """<iframe title="AQI" width="1020" height="950" src="https://app.powerbi.com/view?r=eyJrIjoiNzNmZWFlOTEtYjRhYi00OTIxLWFiZTQtOGI5YWQwYjFlNjcyIiwidCI6IjY5YmQ5ODlhLTkyN2QtNDRlZS05ZWRkLTYwOWFjZmY4MmY1MiJ9" frameborder="0" allowFullScreen="true"></iframe>"""
+   
     st.components.v1.html(iframe_code, height=600)
 
     # Conclusion Section
