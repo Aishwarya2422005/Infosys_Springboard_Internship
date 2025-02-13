@@ -192,7 +192,7 @@ if selected == "Connect on LinkedIn":
 
     st.markdown(
         """
-        I'm Gayatri Deshmukh, a passionate student coming from a Computer Science background. I enjoy connecting with like-minded people, exchanging ideas, and collaborating on exciting projects. Feel free to reach out to me through any of the channels below.
+        I'm Aishwarya S, a passionate student coming from a Computer Science background. I enjoy connecting with like-minded people, exchanging ideas, and collaborating on exciting projects. Feel free to reach out to me through any of the channels below.
         """
     )
 
@@ -210,14 +210,14 @@ if selected == "Connect on LinkedIn":
 
     with col1:
         st.markdown(
-            f'<a href="https://www.linkedin.com/in/deshmukhgayatri" target="_blank" class="custom-button">🤝 LinkedIn</a>',
+            f'<a href="https://www.linkedin.com/in/aishwarya-s-b99b90268/" target="_blank" class="custom-button">🤝 LinkedIn</a>',
             unsafe_allow_html=True
         )
 
 
     with col2:
         st.markdown(
-            f'<a href="mailto:deshmukhgayatri018@gmail.com" target="_blank" class="custom-button">📩 Email</a>',
+            f'<a href="mailto:s.aishwarya2412@gmail.com" target="_blank" class="custom-button">📩 Email</a>',
             unsafe_allow_html=True
         )
     st.markdown("---")
@@ -226,7 +226,7 @@ if selected == "Connect on LinkedIn":
 footer_html = """
 <div style="background-color:#f0f2f6; padding:20px; text-align:center; border-radius:20px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
     <p style="margin: 0; font-size: 16px;">&copy; Infosys Springboard Internship 5.0.  All rights reserved.<br> 
-    Created with ❤️ by Gayatri Deshmukh
+    Created with ❤️ by Aishwarya S
 
 </div>
 """
